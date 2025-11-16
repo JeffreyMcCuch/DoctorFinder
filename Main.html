@@ -23,21 +23,89 @@
     #spinner {
       display: none;
     }
+
+    .card {
+      border: none;
+      background: #ffffff;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4) !important;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.5) !important;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+      border: none;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      border-radius: 25px;
+      box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #0056b3 0%, #003d82 100%);
+      box-shadow: 0 6px 18px rgba(0, 123, 255, 0.5);
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+      border: none;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      border-radius: 25px;
+      box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+    }
+
+    .btn-success:hover {
+      background: linear-gradient(135deg, #1e7e34 0%, #155724 100%);
+      box-shadow: 0 6px 18px rgba(40, 167, 69, 0.5);
+    }
+
+    .card-body {
+      padding: 2rem;
+    }
+
+    #video {
+      transform: scaleX(-1);
+    }
+
+    #cameraInstruction {
+      display: none;
+      background-color: #e7f3ff;
+      border: 1px solid #b3d9ff;
+      color: #004085;
+      padding: 10px;
+      border-radius: 5px;
+      margin-bottom: 15px;
+      font-weight: 500;
+    }
   </style>
 </head>
 <body class="bg-light">
 
 <div class="container py-5">
-  <div class="row justify-content-center">
-    <div class="col-md-6">
-
+  <div class="row justify-content-center mb-4">
+    <div class="col-md-9">
       <div class="card shadow-lg">
         <div class="card-body text-center">
+          <h3 class="text-primary fw-bold">Let's Get Your Insurance Information!</h3>
+          <img src ="images/istockphoto-1493520511-612x612.jpg" alt="Scan Icon" class="mb-3 img-fluid" style="max-width: 100%; height: auto; max-height: 150px;">
+            <h6 style=>Once we have your insurance information, we can help you find the best doctors and services accepted in your network.</h4>
+        </div>
+      </div>
+    </div>
+  </div>
 
-          <h3 class="mb-3 text-primary fw-bold">
-            Scan Your Insurance Card
-          </h3>
-
+  <div class="row justify-content-center mb-4">
+    <!-- Scan Card -->
+    <div class="col-md-4 me-3">
+      <div class="card shadow-lg">
+        <div class="card-body text-center">
+          <h4 class="mb-3 text-primary fw-bold">Scan Your Card:</h4>
+         <img src="images/6486953.png" alt="Scan Icon" class="mb-3 img-fluid" style="max-width: 100%; height: auto; max-height: 40px;">
           <p class="text-muted mb-4">
             Click "Start Camera" and position your card in front of the camera.
           </p>
@@ -50,27 +118,52 @@
             Capture Image
           </button>
 
-          <div class="mb-3">
-            <label for="uploadInput" class="btn btn-info w-100">
-              Upload Image
-            </label>
-            <input type="file" id="uploadInput" accept="image/*" style="display:none;">
+          <div id="cameraWarning" class="alert alert-warning" role="alert" style="display:none; margin-bottom: 1rem;"></div>
+
+          <div id="cameraInstruction">
+            Select the Capture button when your card is completely within the frame
           </div>
 
+          <video id="video" autoplay playsinline></video>
+          <canvas id="canvas" style="display:none;"></canvas>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-1 d-flex align-items-start justify-content-center" style="padding-top: 10px;">
+      <h4 class="text-secondary fw-bold">OR</h4></div>
+    <!-- Upload Card -->
+    <div class="col-md-4">
+      <div class="card shadow-lg">
+        <div class="card-body text-center">
+          <h4 class="mb-3 text-primary fw-bold">Upload Your Card:</h4>
+                   <img src="images/upload-icon-15.png" alt="Scan Icon" class="mb-3 img-fluid" style="max-width: 100%; height: auto; max-height: 50px;">
+          <p class="text-muted mb-4">
+            Select an image file from your device.
+          </p>
+
+          <label for="uploadInput" class="btn btn-primary w-100 mb-2">
+            Choose Image
+          </label>
+          <input type="file" id="uploadInput" accept="image/*" style="display:none;">
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Results Section -->
+  <div class="row justify-content-center" id="resultsSection" style="display:none;">
+    <div class="col-md-6">
+      <div class="card shadow-lg">
+        <div class="card-body">
           <div id="spinner" class="text-center mb-3">
             <div class="spinner-border text-primary" role="status"></div>
             <p class="small text-muted mt-2">Processing OCR...</p>
           </div>
 
-          <video id="video" autoplay playsinline></video>
-          <canvas id="canvas" style="display:none;"></canvas>
-          <img id="captured" class="img-fluid mt-3"/>
+          <img id="captured" class="img-fluid mt-3" style="display:none;"/>
 
           <div id="ocrResult" class="result-box mt-4 text-start"></div>
-
         </div>
       </div>
-
     </div>
   </div>
 </div>
@@ -84,14 +177,21 @@ const canvas = document.getElementById('canvas');
 const captured = document.getElementById('captured');
 const ocrResult = document.getElementById('ocrResult');
 const spinner = document.getElementById('spinner');
+const cameraWarning = document.getElementById('cameraWarning');
+const cameraInstruction = document.getElementById('cameraInstruction');
+const resultsSection = document.getElementById('resultsSection');
 
 let stream;
 
 // Helper function to process image and send to OCR
 function processImageForOCR(dataUrl) {
-  // Show spinner
+  // Show results section and spinner
+  resultsSection.style.display = "block";
   spinner.style.display = "block";
   ocrResult.textContent = "";
+
+  // show captured preview
+  captured.style.display = "block";
 
   // Send to backend
   fetch("/ocr", {
@@ -99,22 +199,49 @@ function processImageForOCR(dataUrl) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ image: dataUrl })
   })
-  .then(res => res.json())
-  .then(data => {
+  .then(res => res.json().then(payload => ({ status: res.status, payload })))
+  .then(({ status, payload }) => {
     spinner.style.display = "none";
-    ocrResult.textContent = data.text;
+    if (payload.error) {
+      const details = payload.details ? (" — " + payload.details) : "";
+      ocrResult.textContent = "OCR Error: " + payload.error + details;
+    } else {
+      ocrResult.textContent = payload.text || "(no text found)";
+    }
   })
   .catch(err => {
     spinner.style.display = "none";
-    ocrResult.textContent = "Error processing OCR.";
+    ocrResult.textContent = "Error processing OCR: " + (err.message || err);
   });
 }
 
 // Start Camera
 startBtn.onclick = async () => {
-  stream = await navigator.mediaDevices.getUserMedia({ video: true });
-  video.srcObject = stream;
-  captureBtn.disabled = false;
+  try {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      cameraWarning.innerHTML = "⚠️ Camera access is not supported on this device or browser. Please use the upload option instead.";
+      cameraWarning.style.display = "block";
+      cameraInstruction.style.display = "none";
+      return;
+    }
+    
+    stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    video.srcObject = stream;
+    captureBtn.disabled = false;
+    cameraWarning.style.display = "none";
+    cameraInstruction.style.display = "block";
+  } catch (err) {
+    if (err.name === "NotAllowedError") {
+      cameraWarning.innerHTML = "⚠️ Camera access was denied. Please allow camera permission and try again.";
+    } else if (err.name === "NotFoundError") {
+      cameraWarning.innerHTML = "⚠️ No camera device found on this device. Please use the upload option instead.";
+    } else {
+      cameraWarning.innerHTML = "⚠️ Error accessing camera: " + err.message + ". Please use the upload option instead.";
+    }
+    cameraWarning.style.display = "block";
+    cameraInstruction.style.display = "none";
+    spinner.style.display = "none";
+  }
 };
 
 // Capture Image
@@ -128,6 +255,18 @@ captureBtn.onclick = () => {
 
   captured.src = dataUrl;
   processImageForOCR(dataUrl);
+
+  // stop camera after capture to conserve resources and avoid continued preview
+  try {
+    if (stream) {
+      stream.getTracks().forEach(t => t.stop());
+      video.srcObject = null;
+      stream = null;
+    }
+  } catch (e) {
+    console.warn('Error stopping camera stream:', e);
+  }
+  captureBtn.disabled = true;
 };
 
 // Handle File Upload
@@ -139,6 +278,7 @@ uploadInput.onchange = (event) => {
   reader.onload = (e) => {
     const dataUrl = e.target.result;
     captured.src = dataUrl;
+    captured.style.display = "block";
     processImageForOCR(dataUrl);
   };
   reader.readAsDataURL(file);
